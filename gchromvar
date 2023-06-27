@@ -1,0 +1,29 @@
+files=list.files('output/',pattern="total_\\w+_ReadsInPeaks.txt")
+data_dir="output/"
+mat_list=list()
+i=1
+for(f in files){
+    data= read.table(file.path(data_dir,f),header=F)
+    name = strsplit(f,"_")[[1]][2]
+    colnames(data)= c("chr","start","end",name)
+    if(i==1){
+       seDF=data[,c("chr","start","end")]
+     }
+    rownames(data)=paste(data$chr,data$start,data$end,sep="-")
+    data = data[,4,drop=F]
+    mat_list[[name]]= data
+}
+
+mat = do.call(cbind,mat_list)
+se=peaks <- makeGRangesFromDataFrame(seDF)
+
+
+
+SE <- SummarizedExperiment(assays = list(counts = mat),
+                               rowData = se, 
+                               colData = DataFrame(names = colnames(mat))
+                               
+                               
+                               
+ cmat=as.matrix(counts(SE))
+assays(SE,"counts")=cmat

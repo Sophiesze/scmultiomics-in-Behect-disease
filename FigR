@@ -1,0 +1,47 @@
+library(FigR)
+
+
+atac_rse=readRDS('Rse_atac.rds')
+
+assay(atac_rse,"counts")=assay(atac_rse)
+
+print(atac_rse)
+
+rnamat=readRDS('rnamat.rds')
+
+cisCor <- runGenePeakcorr(ATAC.se = atac_rse,
+RNAmat = rnamat,
+genome = "hg38", # Also supports mm10 and hg38
+nCores = 24,
+p.cut=NULL)
+
+
+
+
+
+
+
+
+# Get DORC scores
+dorcMat <- getDORCScores(atac.se,dorcTab=cisCor.filt,geneList=dorcGenes,nCores=48)
+
+# Smooth DORC scores (using cell KNNs) skip
+dorcMat.smooth <- smoothScoresNN(NNmat=cellKNN.mat,mat=dorcMat,nCores=4)
+
+
+fig.d <- runFigRGRN(ATAC.se=,atac.se,
+                    rnaMat=rnaMat, # Smoothed RNA matrix using paired cell kNNs
+                    dorcMat=dorcMat,
+                    dorcTab=cisCor.filt,
+                    genome="hg38",
+                    dorcGenes=dorcGenes,
+                    nCores=48)
+
+
+cisCor.filt<- cisCor %>% filter(pvalZ <= 0.05)
+dorcGenes <- cisCor.filt %>% dorcJPlot(cutoff=7, returnGeneList=TRUE)
+
+
+plotDrivers(figd, 'HLA-DQB1', score.cut = 1, label = TRUE)
+
+

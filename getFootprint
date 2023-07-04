@@ -1,0 +1,65 @@
+library(argparse)
+library(stringr)
+#library(Seurat)
+library(ArchR)
+library(Matrix)
+library(ggplot2)
+library(parallel)
+
+
+projHeme<-loadArchRProject(args$archr)
+
+print("# Get Motif position")
+motifPositions <- getPositions(projHeme)
+
+motifs=args$motif
+######
+#x=read.csv('/home/shi/Work/ATAC/imd/Runcode-temp/cisbp.csv',stringsAsFactors=F,header=F)
+#motifs=as.character(x$V1)
+######
+
+name<-args$name
+groupby=args$groupby
+markerMotifs <- unlist(lapply(motifs, function(x) grep(x, names(motifPositions), value = TRUE)))
+
+meta=as.data.frame(getCellColData(projHeme))
+stopifnot(args$group%in%colnames(meta))
+print("# getFootprints")
+
+seFoot <- getFootprints(
+  ArchRProj = projHeme,
+  positions = motifPositions[markerMotifs],
+  groupBy =groupby
+  #flank=100
+)
+
+saveRDS(seFoot,file.path(args$outdir,'seFoot.rds'))
+
+plotFootprints(
+  seFoot = seFoot,
+  ArchRProj = projHeme,
+  normMethod = "Subtract",
+  plotName = paste0(name,"Footprints-Subtract-Bias"),
+  addDOC = FALSE,
+  #pal=paletteContinuous(set = 'coolwarm', n = 2, reverse = FALSE),
+  smoothWindow = 5
+  #flank = 100,
+  #flankNorm = 50
+)
+
+result=list()
+for (i in seq_along(tf_names)){
+name1=tf_names[i]
+out=getFoot(seFoot,name)
+footdf=out$plotFootDF
+formu=aov(formula=mean~group,data=footdf_sub)
+ r1=TukeyHSD(formu)
+ r2=r1$group
+ nrn1=paste0(name1,rownames(r2))
+ rownames(r2)=nrn1
+result[[name1]]=data.frame(r2)
+print(name1)
+}
+
+df=do.call(rbind,result)
+

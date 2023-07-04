@@ -1,0 +1,26 @@
+# construct design & contrast matrix
+ei <- metadata(sce)$experiment_info
+mm <- model.matrix(~ 0 + ei$group_id)
+dimnames(mm) <- list(ei$sample_id, levels(ei$group_id))
+contrast <- makeContrasts("BD-HC", levels = mm)
+
+
+sce <- aggregateData(sce,
+    assay = "counts", fun = "sum",
+    by = c("cluster_id", "sample_id"))
+
+
+ei=metadata(sce)$experiment_info
+mm=model.matrix(~0+ ei$group_id)
+dimnames(mm)=list(ei$sample_id,levels(ei$group_id))
+contrast=makeContrasts('BD-HC',levels=mm)
+
+res_n=pbDS(sce, design = mm, contrast = contrast,min_cells=1)
+
+for (i in 1:length(res_n$table[['BD-HC']]))
+{
+df=res_n$table[['BD-HC']][[i]]
+celltypes=names(res_n$table[['BD-HC']])[[i]]
+write.csv(df,paste0(celltypes,'_pbDS.csv'))
+
+}

@@ -1,0 +1,30 @@
+library(Seurat)
+library(Signac)
+library(ggplot2)
+library(cowplot)
+library(stringr)
+library(future)
+
+plan("multicore", workers = 48)
+options(future.globals.maxSize = 400 * 1024 ^ 3)
+
+set.seed(1)
+
+atac=readRDS('~/Work/atac/combined_seurat_GA.rds') 
+rna=readRDS('~/Work/rna/08_Total_withlabelfine.rds')
+
+rna=sample(colnames(rna),size=200000,replace=F)
+atac=sample(colnames(atac),size=100000,replace=F)
+
+seuratt=subset(rna,cells=rna_subset)
+archr=subset(atac,cells=atac_subset)
+
+seurat=FindVariableFeatures(seurat_subset,nfeatures=2000)
+gu=VariableFeatures(seurat)
+
+genes=rownames(archr)
+genes=genes[rownames(archr)%in%gu]
+
+transfer.anchors <- FindTransferAnchors(reference = seurat, query = archr, features = genes, reference.assay = "RNA", query.assay = "archrGA", reduction = "cca")
+
+saveRDS(transfer.anchors ,'transferAnchors.rds')

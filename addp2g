@@ -1,0 +1,11 @@
+proj<-loadArchRProject(args$archr)
+
+proj <- addPeak2GeneLinks(
+    ArchRProj = proj,
+    reducedDims = "IterativeLSI"
+)
+
+#saveRDS(projHeme,file.path(path,paste0(name,"Save-ArchR-Project.rds")))
+
+path=getOutputDirectory(proj)
+saveRDS(proj,file.path(path,"Save-ArchR-Project.rds"))

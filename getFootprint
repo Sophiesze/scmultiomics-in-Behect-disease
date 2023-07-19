@@ -47,6 +47,8 @@ plotFootprints(
   #flankNorm = 50
 )
 
+
+###two of more groups
 result=list()
 for (i in seq_along(tf_names)){
 name1=tf_names[i]
@@ -59,6 +61,30 @@ formu=aov(formula=mean~group,data=footdf_sub)
  rownames(r2)=nrn1
 result[[name1]]=data.frame(r2)
 print(name1)
+}
+
+df=do.call(rbind,result)
+
+
+
+###two groups
+tf_names=assayNames(seFoot)
+
+
+
+result=list()
+for (i in seq_along(tf_names)){
+name=tf_names[i]
+out=getFoot(seFoot,name)
+footdf=out$plotFootDF
+footdf_sub=footdf[abs(footdf$x)<=100,]
+mod=wilcox.test(mean~group,data=footdf_sub)
+print(name)
+print(mod)
+pvalue=mod$p.value
+sig=mod$p.value<.05
+result[[name]]=data.frame("pvalue"=pvalue,"sig"=sig)
+
 }
 
 df=do.call(rbind,result)

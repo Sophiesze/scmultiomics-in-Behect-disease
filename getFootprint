@@ -54,7 +54,7 @@ for (i in seq_along(tf_names)){
 name1=tf_names[i]
 out=getFoot(seFoot,name)
 footdf=out$plotFootDF
-formu=aov(formula=mean~group,data=footdf_sub)
+formu=aov(formula=mean~group,data=footdfb)
  r1=TukeyHSD(formu)
  r2=r1$group
  nrn1=paste0(name1,rownames(r2))
@@ -77,8 +77,7 @@ for (i in seq_along(tf_names)){
 name=tf_names[i]
 out=getFoot(seFoot,name)
 footdf=out$plotFootDF
-footdf_sub=footdf[abs(footdf$x)<=100,]
-mod=wilcox.test(mean~group,data=footdf_sub)
+mod=wilcox.test(mean~group,data=footdf)
 print(name)
 print(mod)
 pvalue=mod$p.value
